@@ -22,7 +22,8 @@ from core.utils import clean_urls
 from core.loaders import load_documents_from_urls
 from core.splitter import split_documents
 from core.vectorstore import build_and_save_faiss_index, load_faiss_index
-from core.rag import build_rag_chain, run_query, extract_sources
+from core.rag import build_rag_components, run_query, extract_sources
+
 
 
 load_dotenv()
@@ -87,14 +88,15 @@ if query:
         allow_dangerous_deserialization=ALLOW_DANGEROUS_DESERIALIZATION,
     )
 
-    rag_chain = build_rag_chain(
-        vectorstore=vectorstore,
-        chat_model=CHAT_MODEL,
-        temperature=TEMPERATURE,
-        top_k=TOP_K,
+    llm, retriever, prompt = build_rag_components(
+    vectorstore=vectorstore,
+    chat_model=CHAT_MODEL,
+    temperature=TEMPERATURE,
+    top_k=TOP_K,
     )
 
-    result = run_query(rag_chain, query)
+    result = run_query(llm, retriever, prompt, query)
+
 
     st.header("Answer")
     st.write(result.get("answer", ""))
