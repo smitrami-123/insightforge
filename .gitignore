@@ -1,0 +1,19 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+
+# Streamlit
+.streamlit/
+
+# OS
+.DS_Store
+
+# Vector index / artifacts
+insightforge_faiss_index/
+*.faiss
+*.pkl
+
+# Logs
+*.log
