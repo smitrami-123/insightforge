@@ -36,11 +36,21 @@ def build_rag_components(
 def run_query(llm, retriever, prompt, question: str) -> Dict[str, Any]:
     """
     Retrieval + Prompt + LLM (manual RAG).
-    Returns a normalized result dict:
+    Compatible with both older and newer retriever APIs.
+    Returns:
       - answer: str
       - context: List[Document]
     """
-    docs = retriever.get_relevant_documents(question)
+    # Newer LangChain retrievers are "runnables" -> use invoke()
+    if hasattr(retriever, "invoke"):
+        docs = retriever.invoke(question)
+    # Older style
+    elif hasattr(retriever, "get_relevant_documents"):
+        docs = retriever.get_relevant_documents(question)
+    else:
+        raise AttributeError(
+            "Retriever API not supported. Expected `invoke()` or `get_relevant_documents()`."
+        )
 
     context_text = "\n\n".join(
         [d.page_content for d in docs if getattr(d, "page_content", None)]
@@ -52,7 +62,6 @@ def run_query(llm, retriever, prompt, question: str) -> Dict[str, Any]:
     messages = prompt.format_messages(question=question, context=context_text)
     response = llm.invoke(messages)
 
-    # response can be an AIMessage
     answer = getattr(response, "content", str(response))
     return {"answer": answer, "context": docs}
 
